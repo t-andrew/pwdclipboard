@@ -16,16 +16,7 @@ short exitNow = 0;
 short consoleMode = 0;
 short reset = 0;
 
-const char *pwds[] = {"1234!",
-                        "muhpass",
-                        "anotherPass",
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL};
+char *pwds[10];
 
 void kListener(void) {
     while(enableListen) {
@@ -103,6 +94,34 @@ void ListPwds(void) {
     } while(pwds[i] != NULL);
 }
 
+int initPasswords(short verbose=1) {
+    int i;
+    char pwd[256];
+    FILE *f = fopen("p.txt", "r");
+
+    if(f == NULL)  {
+        cerr<<"Password file not found!"<<endl;
+
+        //Initialize the list with a password
+        pwds[0] = new char[sizeof(char) * 4];
+        strcpy(pwds[0], "1234");
+        return -1;
+    }
+
+    i = 0;
+    while(fgets(pwd, sizeof(pwd), f)) {
+
+        pwd[strlen(pwd)-1] = '\0'; //Strip \n
+
+        pwds[i] = new char[sizeof(char) * strlen(pwd) + 1];
+        strcpy(pwds[i], pwd);
+
+        i++;
+        if(i>=10) break;
+    }
+    fclose(f);
+    return 0;
+}
 
 int main(int argc, char **argv) {
     //Parse arguments
@@ -111,6 +130,8 @@ int main(int argc, char **argv) {
             consoleMode = 1;
         }
     }
+
+    initPasswords();
 
     if(!consoleMode) {
         ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
