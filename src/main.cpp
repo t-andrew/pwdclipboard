@@ -1,127 +1,12 @@
 #include <iostream>
 #include <windows.h>
 
-int Cpy2clip(int);
-void kListener(void);
-void shortcutListener(void);
-void ListPwds(void);
-
-#define KPRESS(X) (((GetAsyncKeyState((int)(X+'0'))) & (0x8000))?(1):(0))
-#define SELPWD(X) ((KPRESS(X))?(Cpy2clip(X)):(0x00))
+#include "keylisten.h"
+#include "passwords.h"
 
 using namespace std;
 
-short enableListen = 1;
-short exitNow = 0;
 short consoleMode = 0;
-short reset = 0;
-
-char *pwds[10];
-
-void kListener(void) {
-    while(enableListen) {
-        if(((GetAsyncKeyState(VK_CONTROL)) & (0x8000) ) && ((GetAsyncKeyState(VK_SHIFT)) & (0x8000) ))
-        {
-            if((GetAsyncKeyState('K')) & (0x8000) ) {
-                enableListen = 0;
-                break;
-            }
-            if ((GetAsyncKeyState('H')) & (0x8000) ) {
-                enableListen = 0;
-                exitNow = 1;
-                break;
-            }
-            if ((GetAsyncKeyState('T')) & (0x8000) ) {
-                MessageBox(NULL, "PwdClipboard v0.1 is running. Made by t-andrew.", "PwdClipboard", MB_OK|MB_ICONINFORMATION);
-                reset = 1;
-                enableListen = 0;
-                break;
-            }
-
-        }
-    }
-}
-
-void selListener(void) {
-    int res;
-    while(enableListen) {
-        res = SELPWD(0) || SELPWD(1) || SELPWD(2) || SELPWD(3) || SELPWD(4) || SELPWD(5) || SELPWD(6) || SELPWD(7) || SELPWD(8) || SELPWD(9);
-
-        if(res > 0) {
-            //User made a valid choice and the string has been copied to clipboard successfully
-            enableListen = 0;
-            break;
-        }
-
-    }
-}
-
-
-void Cpy2clip(const char *str) {
-    if((strlen(str) <= 0) || strlen(str) >= 64) {
-        return;
-    }
-
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(str)+1);
-    memcpy(GlobalLock(hMem), str, strlen(str)+1);
-    GlobalUnlock(hMem);
-    OpenClipboard(0);
-    EmptyClipboard();
-    SetClipboardData(CF_TEXT, hMem);
-    CloseClipboard();
-}
-
-int Cpy2clip(int index) {
-
-    try {
-        if(pwds[index] == NULL) {
-            return 0;
-        }
-        Cpy2clip(pwds[index]);
-        return 1; //Success
-    } catch (int e) {
-        return 0;
-    }
-
-}
-
-
-void ListPwds(void) {
-    int i = 0;
-    do {
-        cout<<"#"<<i<<"   "<<pwds[i]<<endl;
-        i++;
-    } while(pwds[i] != NULL);
-}
-
-int initPasswords(short verbose=1) {
-    int i;
-    char pwd[256];
-    FILE *f = fopen("p.txt", "r");
-
-    if(f == NULL)  {
-        cerr<<"Password file not found!"<<endl;
-
-        //Initialize the list with a password
-        pwds[0] = new char[sizeof(char) * 4];
-        strcpy(pwds[0], "1234");
-        return -1;
-    }
-
-    i = 0;
-    while(fgets(pwd, sizeof(pwd), f)) {
-
-        pwd[strlen(pwd)-1] = '\0'; //Strip \n
-
-        pwds[i] = new char[sizeof(char) * strlen(pwd) + 1];
-        strcpy(pwds[i], pwd);
-
-        i++;
-        if(i>=10) break;
-    }
-    fclose(f);
-    return 0;
-}
 
 int main(int argc, char **argv) {
     //Parse arguments
@@ -130,16 +15,19 @@ int main(int argc, char **argv) {
             consoleMode = 1;
         }
     }
+	
+	struct lFlags lf;
 
-    initPasswords();
+    InitPwds();
 
     if(!consoleMode) {
         ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
     }
 
-
     //Listen for key input
-    while(!exitNow) {
+    do {
+		resetFlags(lf);
+		
         cout<<"Listening for activation key combination ..."<<endl;
         cout<<endl;
         cout<<"The following key combinations are valid:"<<endl;
@@ -147,21 +35,15 @@ int main(int argc, char **argv) {
         cout<<"\tCTRL + SHIFT + T  --  Displays a message. Useful for testing if the program is running"<<endl;
         cout<<"\tCTRL + SHIFT + H  --  Exits the program"<<endl;
 
-        kListener();
-        if(exitNow) break; //Check if the exitNow flag has been set
-        enableListen = 1; //Reset flag to 1 to be able to listen again in the future
+        kListener(lf);
 
-        //If the reset flag is set, the loop should be restarted.
-        if(reset) {
-            reset = 0;
-            continue;
-        }
+        if(lf.exitNow) break; //Check if the exitNow flag has been set
+        if(lf.listenAgain) continue; //If the listenAgain flag is set, the loop should be restarted.
 
         cout<<"Choose a password:"<<endl;
         ListPwds();
         selListener();
-        enableListen = 1;
-    }
+    } while(!lf.exitNow);
 
     return 0;
 }

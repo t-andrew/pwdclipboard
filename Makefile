@@ -1,6 +1,6 @@
 TARGET := PwdClip
 CXX := g++
-CXXFLAGS := -Wall -O3 -c
+CXXFLAGS := -Wall -O3 -c -std=c++11
 LD := g++ -o
 
 SRCDIR = src
@@ -13,3 +13,5 @@ $(TARGET): obj
 obj: $(SRCDIR)/*.cpp
 	$(CXX) $(CXXFLAGS) $^
 
+clean:
+	rm -f *.o
