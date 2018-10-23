@@ -16,6 +16,7 @@ void resetFlags(struct lFlags &lf);
 struct lFlags {
 	short exitNow = 0;
 	short listenAgain = 0;
+	short toggleVisibility = 0;
 };
 
 #endif //_KEY_LISTEN

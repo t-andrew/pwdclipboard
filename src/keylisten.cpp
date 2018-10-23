@@ -10,12 +10,13 @@ void kListener(struct lFlags &lf) {
             if ((GetAsyncKeyState('H')) & (0x8000) ) {
                 lf.exitNow = 1;
 				lf.listenAgain = 0;
+				lf.toggleVisibility = 0;
                 break;
             }
             if ((GetAsyncKeyState('T')) & (0x8000) ) {
-                MessageBox(NULL, "PwdClipboard v0.1 is running. Made by t-andrew.", "PwdClipboard", MB_OK|MB_ICONINFORMATION);
-                lf.listenAgain = 1;
+                lf.listenAgain = 0;
 				lf.exitNow = 0;
+				lf.toggleVisibility = 1;
                 break;
             }
         }

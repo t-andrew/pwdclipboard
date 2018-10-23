@@ -17,11 +17,13 @@ int main(int argc, char **argv) {
     }
 	
 	struct lFlags lf;
+	HWND wnd = FindWindowA("ConsoleWindowClass", NULL);
+	BOOL wndRes = 0;
 
     InitPwds();
 
     if(!consoleMode) {
-        ShowWindow(FindWindowA("ConsoleWindowClass", NULL), false);
+        wndRes = ShowWindow(wnd, SW_HIDE); //Returns non-zero
     }
 
     //Listen for key input
@@ -32,13 +34,21 @@ int main(int argc, char **argv) {
         cout<<endl;
         cout<<"The following key combinations are valid:"<<endl;
         cout<<"\tCTRL + SHIFT + K  --  Allows password selection from list 0-9"<<endl;
-        cout<<"\tCTRL + SHIFT + T  --  Displays a message. Useful for testing if the program is running"<<endl;
+        cout<<"\tCTRL + SHIFT + T  --  Show/Hide console"<<endl;
         cout<<"\tCTRL + SHIFT + H  --  Exits the program"<<endl;
 
         kListener(lf);
 
         if(lf.exitNow) break; //Check if the exitNow flag has been set
         if(lf.listenAgain) continue; //If the listenAgain flag is set, the loop should be restarted.
+		if(lf.toggleVisibility) {
+			if(wndRes != 0)
+				wndRes = ShowWindow(wnd, SW_SHOW);
+			else
+				wndRes = ShowWindow(wnd, SW_HIDE);
+			
+			continue;
+		}
 
         cout<<"Choose a password:"<<endl;
         ListPwds();
