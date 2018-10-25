@@ -19,12 +19,4 @@ struct lFlags {
 	short toggleVisibility = 0;
 };
 
-struct kPressed {
-	short testKey = 0;
-	short haltKey = 0;
-	short selectKey = 0;
-};
-
-typedef struct kPressed kP;
-
 #endif //_KEY_LISTEN
