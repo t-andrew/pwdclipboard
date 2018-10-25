@@ -6,12 +6,18 @@ LD := g++ -o
 SRCDIR = src
 BINDIR = bin
 
-$(TARGET): obj
-	$(LD) $(BINDIR)/$(TARGET) *.o
-	rm -f *.o
+SRC := $(wildcard $(SRCDIR)/*.cpp)
+OBJ := $(patsubst %.cpp,%.o,$(SRC))
 
-obj: $(SRCDIR)/*.cpp
-	$(CXX) $(CXXFLAGS) $^
+all: $(TARGET)
 
+$(TARGET): $(OBJ)
+	$(LD) $(BINDIR)/$(TARGET) $(SRCDIR)/*.o
+
+%.o: %.c
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/$<
+
+.PHONY: clean
 clean:
 	rm -f *.o
+	rm -f $(SRCDIR)/*.o
